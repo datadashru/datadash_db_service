@@ -1,0 +1,39 @@
+version: '3.7'
+
+services:
+  postgres:
+    image: postgres:latest
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    env_file:
+      - .env.compose
+    volumes: 
+      - pg_data:/var/lib/postgresql/data
+    ports:
+      - "5436:5432"
+    networks:
+      - ddnet
+
+  migrator:
+    env_file:
+      - .env.compose
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: bash -c "alembic upgrade head"
+    networks:
+      - ddnet
+
+
+volumes:
+  pg_data:
+
+networks:
+  ddnet:
+    driver: bridge
