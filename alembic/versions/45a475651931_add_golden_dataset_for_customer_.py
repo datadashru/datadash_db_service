@@ -30,7 +30,15 @@ def upgrade() -> None:
                 # Reset the accumulated SQL command
                 sql_command = ''
     with open('sql/3_golden_summary.up.sql', 'r', encoding='utf-8') as f:
-        op.execute(f.read())
+        sql_command = ''
+        for line in f:
+            # Accumulate lines until a semicolon is encountered
+            sql_command += line.strip()
+            if sql_command.endswith(';'):
+                # Execute the accumulated SQL command
+                op.execute(sql_command)
+                # Reset the accumulated SQL command
+                sql_command = ''
     pass
 
 
